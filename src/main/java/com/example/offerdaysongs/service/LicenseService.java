@@ -11,6 +11,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Service
 public class LicenseService {
@@ -24,6 +25,10 @@ public class LicenseService {
         this.licenseRepository = licenseRepository;
         this.recordingRepository = recordingRepository;
         this.companyRepository = companyRepository;
+    }
+
+    public List<License> getAll() {
+        return licenseRepository.findAll();
     }
 
     @Nullable

@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/licenses")
@@ -20,6 +22,13 @@ public class LicenseController {
 
     public LicenseController(LicenseService licenseService) {
         this.licenseService = licenseService;
+    }
+
+    @GetMapping("/")
+    public List<LicenseDto> getAll(){
+        return licenseService.getAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/")
