@@ -53,6 +53,11 @@ public class LicenseService {
         return licenseRepository.save(license);
     }
 
+    @Transactional
+    public void delete(long id) {
+        licenseRepository.deleteById(id);
+    }
+
     @Nullable
     private Recording getRecording(Recording recording) {
         return (recording.getId() != null) ?
