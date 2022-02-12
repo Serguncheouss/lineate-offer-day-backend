@@ -1,6 +1,7 @@
 package com.example.offerdaysongs.service;
 
 import com.example.offerdaysongs.dto.requests.CreateLicenseRequest;
+import com.example.offerdaysongs.dto.requests.UpdateLicenseRequest;
 import com.example.offerdaysongs.model.Recording;
 import com.example.offerdaysongs.model.Company;
 import com.example.offerdaysongs.model.License;
@@ -53,6 +54,44 @@ public class LicenseService {
         return licenseRepository.save(license);
     }
 
+    @Nullable
+    @Transactional
+    public License update(long id, UpdateLicenseRequest request) {
+        var license = licenseRepository.findById(id).orElse(null);
+        if (license == null) {
+            return null;
+        }
+
+        var requestRecording = request.getRecording();
+        var recording = (requestRecording != null) ? getRecording(requestRecording) : null;
+        if (recording != null && !license.getRecording().getId().equals(recording.getId())) {
+            license.setRecording(getRecording(recording));
+        }
+
+        var startTime = request.getStartTime();
+        if (startTime != null && !license.getStartTime().isEqual(startTime)) {
+            license.setStartTime(startTime);
+        }
+
+        var endTime = request.getEndTime();
+        if (endTime != null && !license.getEndTime().isEqual(endTime)) {
+            license.setEndTime(endTime);
+        }
+
+        var cost = request.getCost();
+        if (cost != null && !license.getCost().equals(cost)) {
+            license.setCost(cost);
+        }
+
+        var requestCompany = request.getCompany();
+        var company = (requestCompany != null) ? getCompany(requestCompany) : null;
+        if (company != null && license.getCompany().getId() != company.getId()) {
+            license.setCompany(getCompany(company));
+        }
+
+        return license;
+    }
+
     @Transactional
     public void delete(long id) {
         licenseRepository.deleteById(id);
@@ -67,6 +106,8 @@ public class LicenseService {
 
     @Nullable
     private Company getCompany(Company company) {
-        return companyRepository.findById(company.getId()).orElse(null);
+        return (company.getId() != 0) ?
+                companyRepository.findById(company.getId()).orElse(null) :
+                null;
     }
 }

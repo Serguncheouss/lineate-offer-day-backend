@@ -5,6 +5,7 @@ import com.example.offerdaysongs.dto.LicenseDto;
 import com.example.offerdaysongs.dto.RecordingDto;
 import com.example.offerdaysongs.dto.SingerDto;
 import com.example.offerdaysongs.dto.requests.CreateLicenseRequest;
+import com.example.offerdaysongs.dto.requests.UpdateLicenseRequest;
 import com.example.offerdaysongs.model.License;
 import com.example.offerdaysongs.service.LicenseService;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -36,6 +37,15 @@ public class LicenseController {
     @PostMapping("/")
     public ResponseEntity<LicenseDto> create(@Valid @RequestBody CreateLicenseRequest request) {
         License license = licenseService.create(request);
+        return (license != null) ?
+                new ResponseEntity<>(convertToDto(license), HttpStatus.OK) :
+                ResponseEntity.badRequest().build();
+    }
+
+    @PatchMapping("/{id:[\\d]+}")
+    public ResponseEntity<Object> update(@PathVariable(ID) long id,
+                                         @Valid @RequestBody UpdateLicenseRequest request) {
+        var license = licenseService.update(id, request);
         return (license != null) ?
                 new ResponseEntity<>(convertToDto(license), HttpStatus.OK) :
                 ResponseEntity.badRequest().build();
