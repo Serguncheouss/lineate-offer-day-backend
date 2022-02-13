@@ -9,6 +9,7 @@ import com.example.offerdaysongs.dto.requests.UpdateLicenseRequest;
 import com.example.offerdaysongs.model.License;
 import com.example.offerdaysongs.service.LicenseService;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,20 +17,30 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.ZonedDateTime;
 
 @RestController
 @RequestMapping("/api/licenses")
 public class LicenseController {
     private static final String ID = "id";
+    private static final String START_TIME = "start_time";
+    private static final String END_TIME = "end_time";
+    private static final String COMPANY_ID = "company_id";
+
     private final LicenseService licenseService;
 
     public LicenseController(LicenseService licenseService) {
         this.licenseService = licenseService;
     }
 
-    @GetMapping("/")
-    public List<LicenseDto> getAll(){
-        return licenseService.getAll().stream()
+    @GetMapping
+    public List<LicenseDto> getAll(
+            @RequestParam(value = START_TIME, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime startTime,
+            @RequestParam(value = END_TIME, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime endTime,
+            @RequestParam(value = COMPANY_ID, required = false) Long companyId) {
+        return licenseService.getAll(startTime, endTime, companyId).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }

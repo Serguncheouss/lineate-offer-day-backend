@@ -8,10 +8,14 @@ import com.example.offerdaysongs.model.License;
 import com.example.offerdaysongs.repository.CompanyRepository;
 import com.example.offerdaysongs.repository.RecordingRepository;
 import com.example.offerdaysongs.repository.LicenseRepository;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,6 +23,10 @@ public class LicenseService {
     private final LicenseRepository licenseRepository;
     private final RecordingRepository recordingRepository;
     private final CompanyRepository companyRepository;
+
+    private static final String START_TIME = "startTime";
+    private static final String END_TIME = "endTime";
+    private static final String COMPANY = "company";
 
     public LicenseService(LicenseRepository licenseRepository,
                           RecordingRepository recordingRepository,
@@ -28,8 +36,16 @@ public class LicenseService {
         this.companyRepository = companyRepository;
     }
 
-    public List<License> getAll() {
-        return licenseRepository.findAll();
+    public List<License> getAll(ZonedDateTime startTime, ZonedDateTime endTime, Long companyId) {
+        var specs = new ArrayList<Specification<License>>();
+        specs.add(licenseInIntervalGreaterThanOrEqualTo(startTime));
+        specs.add(licenseInIntervalLessThanOrEqualTo(endTime));
+        specs.add(licenseHasCompany(companyId));
+
+        return licenseRepository.findAll(
+                (root, query, builder) -> builder.and(specs.stream()
+                        .map(spec -> spec.toPredicate(root, query, builder))
+                        .toArray(Predicate[]::new)));
     }
 
     @Nullable
@@ -109,5 +125,32 @@ public class LicenseService {
         return (company.getId() != 0) ?
                 companyRepository.findById(company.getId()).orElse(null) :
                 null;
+    }
+
+    private Specification<License> licenseInIntervalGreaterThanOrEqualTo(@Nullable ZonedDateTime startTime) {
+        return (root, query, builder) -> (startTime != null) ?
+                builder.or(
+                        builder.greaterThanOrEqualTo(root.get(START_TIME), startTime),
+                        builder.greaterThanOrEqualTo(root.get(END_TIME), startTime)) :
+                builder.conjunction();
+    }
+
+    private Specification<License> licenseInIntervalLessThanOrEqualTo(@Nullable ZonedDateTime endTime) {
+        return (root, query, builder) -> (endTime != null) ?
+                builder.or(
+                        builder.lessThanOrEqualTo(root.get(END_TIME), endTime),
+                        builder.lessThanOrEqualTo(root.get(START_TIME), endTime)) :
+                builder.conjunction();
+    }
+
+    private Specification<License> licenseHasCompany(@Nullable Long companyId) {
+        if (companyId != null) {
+            Company company = companyRepository.findById(companyId).orElse(null);
+            return (root, query, builder) -> (company != null) ?
+                    builder.equal(root.get(COMPANY), company) :
+                    builder.disjunction();
+        } else {
+            return (root, query, builder) -> builder.conjunction();
+        }
     }
 }
