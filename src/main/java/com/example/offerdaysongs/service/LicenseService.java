@@ -27,6 +27,7 @@ public class LicenseService {
     private static final String START_TIME = "startTime";
     private static final String END_TIME = "endTime";
     private static final String COMPANY = "company";
+    private static final String RECORDING = "recording";
 
     public LicenseService(LicenseRepository licenseRepository,
                           RecordingRepository recordingRepository,
@@ -46,6 +47,13 @@ public class LicenseService {
                 (root, query, builder) -> builder.and(specs.stream()
                         .map(spec -> spec.toPredicate(root, query, builder))
                         .toArray(Predicate[]::new)));
+    }
+
+    public List<License> getByRecording(Long recordingId) {
+        Recording recording = (recordingId != null) ?
+                recordingRepository.findById(recordingId).orElse(null) :
+                null;
+        return licenseRepository.findByRecording(recording);
     }
 
     @Nullable
