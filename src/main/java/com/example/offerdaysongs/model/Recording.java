@@ -19,11 +19,18 @@ import java.util.List;
 public class Recording {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //FIXME: Maybe replace id type by primitive long?
+    // In all other model classes uses long
+    // -- Sergey Strelchenko, 20.02.2022
     Long id;
     String title;
     String version;
     ZonedDateTime releaseTime;
     @OneToOne(fetch = FetchType.LAZY)
+    //FIXME: If we try insert or update a recording entity
+    // in the database we get entity with 'null' in the Singer field
+    // If it is not right, we will need replace the insertable and updatable parameters by 'true'
+    // -- Sergey Strelchenko, 20.02.2022
     @JoinColumn(name = "id", insertable = false, updatable = false)
     Singer singer;
 }
